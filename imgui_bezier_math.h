@@ -22,10 +22,10 @@
 template <typename T>
 struct ImCubicBezierPointsT
 {
-    T P0;
-    T P1;
-    T P2;
-    T P3;
+	T P0;
+	T P1;
+	T P2;
+	T P3;
 };
 using ImCubicBezierPoints = ImCubicBezierPointsT<ImVec2>;
 
@@ -56,8 +56,8 @@ template <typename T> inline float ImCubicBezierLength(const ImCubicBezierPoints
 template <typename T>
 struct ImCubicBezierSplitResultT
 {
-    ImCubicBezierPointsT<T> Left;
-    ImCubicBezierPointsT<T> Right;
+	ImCubicBezierPointsT<T> Left;
+	ImCubicBezierPointsT<T> Right;
 };
 using ImCubicBezierSplitResult = ImCubicBezierSplitResultT<ImVec2>;
 
@@ -73,9 +73,9 @@ inline ImRect ImCubicBezierBoundingRect(const ImCubicBezierPoints& curve);
 // Project point on Cubic Bezier curve.
 struct ImProjectResult
 {
-    ImVec2 Point;    // Point on curve
-    float  Time;     // [0 - 1]
-    float  Distance; // Distance to curve
+	ImVec2 Point;    // Point on curve
+	float  Time;     // [0 - 1]
+	float  Distance; // Distance to curve
 };
 
 inline ImProjectResult ImProjectOnCubicBezier(const ImVec2& p, const ImVec2& p0, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const int subdivisions = 100);
@@ -85,8 +85,8 @@ inline ImProjectResult ImProjectOnCubicBezier(const ImVec2& p, const ImCubicBezi
 // Calculate intersection between line and a Cubic Bezier curve.
 struct ImCubicBezierIntersectResult
 {
-    int Count;
-    ImVec2 Points[3];
+	int Count;
+	ImVec2 Points[3];
 };
 
 inline ImCubicBezierIntersectResult ImCubicBezierLineIntersect(const ImVec2& p0, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const ImVec2& a0, const ImVec2& a1);
@@ -96,14 +96,14 @@ inline ImCubicBezierIntersectResult ImCubicBezierLineIntersect(const ImCubicBezi
 // Adaptive Cubic Bezier subdivision.
 enum ImCubicBezierSubdivideFlags
 {
-    ImCubicBezierSubdivide_None        = 0,
-    ImCubicBezierSubdivide_SkipFirst   = 1
+	ImCubicBezierSubdivide_None = 0,
+	ImCubicBezierSubdivide_SkipFirst = 1
 };
 
 struct ImCubicBezierSubdivideSample
 {
-    ImVec2 Point;
-    ImVec2 Tangent;
+	ImVec2 Point;
+	ImVec2 Tangent;
 };
 
 using ImCubicBezierSubdivideCallback = void (*)(const ImCubicBezierSubdivideSample& p, void* user_pointer);
@@ -119,10 +119,10 @@ template <typename F> inline void ImCubicBezierSubdivide(F& callback, const ImCu
 // Fixed step Cubic Bezier subdivision.
 struct ImCubicBezierFixedStepSample
 {
-    float  T;
-    float  Length;
-    ImVec2 Point;
-    bool   BreakSearch;
+	float  T;
+	float  Length;
+	ImVec2 Point;
+	bool   BreakSearch;
 };
 
 using ImCubicBezierFixedStepCallback = void (*)(ImCubicBezierFixedStepSample& sample, void* user_pointer);

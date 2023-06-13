@@ -27,46 +27,47 @@
         static constexpr bool value = (sizeof(yes_type) == sizeof(test<mixin>(0)));  \
     }
 
-namespace ImCanvasDetails {
-
-DECLARE_HAS_MEMBER(HasFringeScale, _FringeScale);
-
-struct FringeScaleRef
+namespace ImCanvasDetails
 {
-    // Overload is present when ImDrawList does have _FringeScale member variable.
-    template <typename T>
-    static float& Get(typename std::enable_if<HasFringeScale<T>::value, T>::type* drawList)
-    {
-        return drawList->_FringeScale;
-    }
 
-    // Overload is present when ImDrawList does not have _FringeScale member variable.
-    template <typename T>
-    static float& Get(typename std::enable_if<!HasFringeScale<T>::value, T>::type*)
-    {
-        static float placeholder = 1.0f;
-        return placeholder;
-    }
-};
+	DECLARE_HAS_MEMBER(HasFringeScale, _FringeScale);
 
-DECLARE_HAS_MEMBER(HasVtxCurrentOffset, _VtxCurrentOffset);
+	struct FringeScaleRef
+	{
+		// Overload is present when ImDrawList does have _FringeScale member variable.
+		template <typename T>
+		static float& Get(typename std::enable_if<HasFringeScale<T>::value, T>::type* drawList)
+		{
+			return drawList->_FringeScale;
+		}
 
-struct VtxCurrentOffsetRef
-{
-    // Overload is present when ImDrawList does have _FringeScale member variable.
-    template <typename T>
-    static unsigned int& Get(typename std::enable_if<HasVtxCurrentOffset<T>::value, T>::type* drawList)
-    {
-        return drawList->_VtxCurrentOffset;
-    }
+		// Overload is present when ImDrawList does not have _FringeScale member variable.
+		template <typename T>
+		static float& Get(typename std::enable_if<!HasFringeScale<T>::value, T>::type*)
+		{
+			static float placeholder = 1.0f;
+			return placeholder;
+		}
+	};
 
-    // Overload is present when ImDrawList does not have _FringeScale member variable.
-    template <typename T>
-    static unsigned int& Get(typename std::enable_if<!HasVtxCurrentOffset<T>::value, T>::type* drawList)
-    {
-        return drawList->_CmdHeader.VtxOffset;
-    }
-};
+	DECLARE_HAS_MEMBER(HasVtxCurrentOffset, _VtxCurrentOffset);
+
+	struct VtxCurrentOffsetRef
+	{
+		// Overload is present when ImDrawList does have _FringeScale member variable.
+		template <typename T>
+		static unsigned int& Get(typename std::enable_if<HasVtxCurrentOffset<T>::value, T>::type* drawList)
+		{
+			return drawList->_VtxCurrentOffset;
+		}
+
+		// Overload is present when ImDrawList does not have _FringeScale member variable.
+		template <typename T>
+		static unsigned int& Get(typename std::enable_if<!HasVtxCurrentOffset<T>::value, T>::type* drawList)
+		{
+			return drawList->_CmdHeader.VtxOffset;
+		}
+	};
 
 } // namespace ImCanvasDetails
 
@@ -75,301 +76,301 @@ struct VtxCurrentOffsetRef
 // If ImDrawList does not have _FringeScale a placeholder is returned.
 static inline float& ImFringeScaleRef(ImDrawList* drawList)
 {
-    using namespace ImCanvasDetails;
-    return FringeScaleRef::Get<ImDrawList>(drawList);
+	using namespace ImCanvasDetails;
+	return FringeScaleRef::Get<ImDrawList>(drawList);
 }
 
 static inline unsigned int& ImVtxOffsetRef(ImDrawList* drawList)
 {
-    using namespace ImCanvasDetails;
-    return VtxCurrentOffsetRef::Get<ImDrawList>(drawList);
+	using namespace ImCanvasDetails;
+	return VtxCurrentOffsetRef::Get<ImDrawList>(drawList);
 }
 
 static inline ImVec2 ImSelectPositive(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x > 0.0f ? lhs.x : rhs.x, lhs.y > 0.0f ? lhs.y : rhs.y); }
 
 bool ImGuiEx::Canvas::Begin(const char* id, const ImVec2& size)
 {
-    return Begin(ImGui::GetID(id), size);
+	return Begin(ImGui::GetID(id), size);
 }
 
 bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
 {
-    IM_ASSERT(m_InBeginEnd == false);
+	IM_ASSERT(m_InBeginEnd == false);
 
-    m_WidgetPosition = ImGui::GetCursorScreenPos();
-    m_WidgetSize = ImSelectPositive(size, ImGui::GetContentRegionAvail());
-    m_WidgetRect = ImRect(m_WidgetPosition, m_WidgetPosition + m_WidgetSize);
-    m_DrawList = ImGui::GetWindowDrawList();
+	m_WidgetPosition = ImGui::GetCursorScreenPos();
+	m_WidgetSize = ImSelectPositive(size, ImGui::GetContentRegionAvail());
+	m_WidgetRect = ImRect(m_WidgetPosition, m_WidgetPosition + m_WidgetSize);
+	m_DrawList = ImGui::GetWindowDrawList();
 
-    UpdateViewTransformPosition();
+	UpdateViewTransformPosition();
 
 # if IMGUI_VERSION_NUM > 18415
-    if (ImGui::IsClippedEx(m_WidgetRect, id))
-        return false;
+	if (ImGui::IsClippedEx(m_WidgetRect, id))
+		return false;
 # else
-    if (ImGui::IsClippedEx(m_WidgetRect, id, false))
-        return false;
+	if (ImGui::IsClippedEx(m_WidgetRect, id, false))
+		return false;
 # endif
 
-    // Save current channel, so we can assert when user
-    // call canvas API with different one.
-    m_ExpectedChannel = m_DrawList->_Splitter._Current;
+	// Save current channel, so we can assert when user
+	// call canvas API with different one.
+	m_ExpectedChannel = m_DrawList->_Splitter._Current;
 
-    // #debug: Canvas content.
-    //m_DrawList->AddRectFilled(m_StartPos, m_StartPos + m_CurrentSize, IM_COL32(0, 0, 0, 64));
-    //m_DrawList->AddRect(m_WidgetRect.Min, m_WidgetRect.Max, IM_COL32(255, 0, 255, 64));
+	// #debug: Canvas content.
+	//m_DrawList->AddRectFilled(m_StartPos, m_StartPos + m_CurrentSize, IM_COL32(0, 0, 0, 64));
+	//m_DrawList->AddRect(m_WidgetRect.Min, m_WidgetRect.Max, IM_COL32(255, 0, 255, 64));
 
-    ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
 
 # if IMGUI_EX_CANVAS_DEFERED()
-    m_Ranges.resize(0);
+	m_Ranges.resize(0);
 # endif
 
-    SaveInputState();
-    SaveViewportState();
+	SaveInputState();
+	SaveViewportState();
 
-    // Record cursor max to prevent scrollbars from appearing.
-    m_WindowCursorMaxBackup = ImGui::GetCurrentWindow()->DC.CursorMaxPos;
+	// Record cursor max to prevent scrollbars from appearing.
+	m_WindowCursorMaxBackup = ImGui::GetCurrentWindow()->DC.CursorMaxPos;
 
-    EnterLocalSpace();
+	EnterLocalSpace();
 
-    // Emit dummy widget matching bounds of the canvas.
-    ImGui::SetCursorScreenPos(m_ViewRect.Min);
-    ImGui::Dummy(m_ViewRect.GetSize());
+	// Emit dummy widget matching bounds of the canvas.
+	ImGui::SetCursorScreenPos(m_ViewRect.Min);
+	ImGui::Dummy(m_ViewRect.GetSize());
 
-    ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
 
-    m_InBeginEnd = true;
+	m_InBeginEnd = true;
 
-    return true;
+	return true;
 }
 
 void ImGuiEx::Canvas::End()
 {
-    // If you're here your call to Begin() returned false,
-    // or Begin() wasn't called at all.
-    IM_ASSERT(m_InBeginEnd == true);
+	// If you're here your call to Begin() returned false,
+	// or Begin() wasn't called at all.
+	IM_ASSERT(m_InBeginEnd == true);
 
-    // If you're here, please make sure you do not interleave
-    // channel splitter with canvas.
-    // Always call canvas function with using same channel.
-    IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
+	// If you're here, please make sure you do not interleave
+	// channel splitter with canvas.
+	// Always call canvas function with using same channel.
+	IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
 
-    //auto& io = ImGui::GetIO();
+	//auto& io = ImGui::GetIO();
 
-    // Check: Unmatched calls to Suspend() / Resume(). Please check your code.
-    IM_ASSERT(m_SuspendCounter == 0);
+	// Check: Unmatched calls to Suspend() / Resume(). Please check your code.
+	IM_ASSERT(m_SuspendCounter == 0);
 
-    LeaveLocalSpace();
+	LeaveLocalSpace();
 
-    ImGui::GetCurrentWindow()->DC.CursorMaxPos = m_WindowCursorMaxBackup;
+	ImGui::GetCurrentWindow()->DC.CursorMaxPos = m_WindowCursorMaxBackup;
 
-    ImGui::SetItemAllowOverlap();
+	ImGui::SetItemAllowOverlap();
 
-    // Emit dummy widget matching bounds of the canvas.
-    ImGui::SetCursorScreenPos(m_WidgetPosition);
-    ImGui::Dummy(m_WidgetSize);
+	// Emit dummy widget matching bounds of the canvas.
+	ImGui::SetCursorScreenPos(m_WidgetPosition);
+	ImGui::Dummy(m_WidgetSize);
 
-    // #debug: Rect around canvas. Content should be inside these bounds.
-    //m_DrawList->AddRect(m_WidgetPosition - ImVec2(1.0f, 1.0f), m_WidgetPosition + m_WidgetSize + ImVec2(1.0f, 1.0f), IM_COL32(196, 0, 0, 255));
+	// #debug: Rect around canvas. Content should be inside these bounds.
+	//m_DrawList->AddRect(m_WidgetPosition - ImVec2(1.0f, 1.0f), m_WidgetPosition + m_WidgetSize + ImVec2(1.0f, 1.0f), IM_COL32(196, 0, 0, 255));
 
-    m_InBeginEnd = false;
+	m_InBeginEnd = false;
 }
 
 void ImGuiEx::Canvas::SetView(const ImVec2& origin, float scale)
 {
-    SetView(CanvasView(origin, scale));
+	SetView(CanvasView(origin, scale));
 }
 
 void ImGuiEx::Canvas::SetView(const CanvasView& view)
 {
-    if (m_InBeginEnd)
-        LeaveLocalSpace();
+	if (m_InBeginEnd)
+		LeaveLocalSpace();
 
-    if (m_View.Origin.x != view.Origin.x || m_View.Origin.y != view.Origin.y)
-    {
-        m_View.Origin = view.Origin;
+	if (m_View.Origin.x != view.Origin.x || m_View.Origin.y != view.Origin.y)
+	{
+		m_View.Origin = view.Origin;
 
-        UpdateViewTransformPosition();
-    }
+		UpdateViewTransformPosition();
+	}
 
-    if (m_View.Scale != view.Scale)
-    {
-        m_View.Scale    = view.Scale;
-        m_View.InvScale = view.InvScale;
-    }
+	if (m_View.Scale != view.Scale)
+	{
+		m_View.Scale = view.Scale;
+		m_View.InvScale = view.InvScale;
+	}
 
-    if (m_InBeginEnd)
-        EnterLocalSpace();
+	if (m_InBeginEnd)
+		EnterLocalSpace();
 }
 
 void ImGuiEx::Canvas::CenterView(const ImVec2& canvasPoint)
 {
-    auto view = CalcCenterView(canvasPoint);
-    SetView(view);
+	auto view = CalcCenterView(canvasPoint);
+	SetView(view);
 }
 
 ImGuiEx::CanvasView ImGuiEx::Canvas::CalcCenterView(const ImVec2& canvasPoint) const
 {
-    auto localCenter = ToLocal(m_WidgetPosition + m_WidgetSize * 0.5f);
-    auto localOffset = canvasPoint - localCenter;
-    auto offset      = FromLocalV(localOffset);
+	auto localCenter = ToLocal(m_WidgetPosition + m_WidgetSize * 0.5f);
+	auto localOffset = canvasPoint - localCenter;
+	auto offset = FromLocalV(localOffset);
 
-    return CanvasView{ m_View.Origin - offset, m_View.Scale };
+	return CanvasView{ m_View.Origin - offset, m_View.Scale };
 }
 
 void ImGuiEx::Canvas::CenterView(const ImRect& canvasRect)
 {
-    auto view = CalcCenterView(canvasRect);
+	auto view = CalcCenterView(canvasRect);
 
-    SetView(view);
+	SetView(view);
 }
 
 ImGuiEx::CanvasView ImGuiEx::Canvas::CalcCenterView(const ImRect& canvasRect) const
 {
-    auto canvasRectSize = canvasRect.GetSize();
+	auto canvasRectSize = canvasRect.GetSize();
 
-    if (canvasRectSize.x <= 0.0f || canvasRectSize.y <= 0.0f)
-        return View();
+	if (canvasRectSize.x <= 0.0f || canvasRectSize.y <= 0.0f)
+		return View();
 
-    auto widgetAspectRatio     = m_WidgetSize.y   > 0.0f ? m_WidgetSize.x   / m_WidgetSize.y   : 0.0f;
-    auto canvasRectAspectRatio = canvasRectSize.y > 0.0f ? canvasRectSize.x / canvasRectSize.y : 0.0f;
+	auto widgetAspectRatio = m_WidgetSize.y > 0.0f ? m_WidgetSize.x / m_WidgetSize.y : 0.0f;
+	auto canvasRectAspectRatio = canvasRectSize.y > 0.0f ? canvasRectSize.x / canvasRectSize.y : 0.0f;
 
-    if (widgetAspectRatio <= 0.0f || canvasRectAspectRatio <= 0.0f)
-        return View();
+	if (widgetAspectRatio <= 0.0f || canvasRectAspectRatio <= 0.0f)
+		return View();
 
-    auto newOrigin = m_View.Origin;
-    auto newScale  = m_View.Scale;
-    if (canvasRectAspectRatio > widgetAspectRatio)
-    {
-        // width span across view
-        newScale = m_WidgetSize.x / canvasRectSize.x;
-        newOrigin = canvasRect.Min * -newScale;
-        newOrigin.y += (m_WidgetSize.y - canvasRectSize.y * newScale) * 0.5f;
-    }
-    else
-    {
-        // height span across view
-        newScale = m_WidgetSize.y / canvasRectSize.y;
-        newOrigin = canvasRect.Min * -newScale;
-        newOrigin.x += (m_WidgetSize.x - canvasRectSize.x * newScale) * 0.5f;
-    }
+	auto newOrigin = m_View.Origin;
+	auto newScale = m_View.Scale;
+	if (canvasRectAspectRatio > widgetAspectRatio)
+	{
+		// width span across view
+		newScale = m_WidgetSize.x / canvasRectSize.x;
+		newOrigin = canvasRect.Min * -newScale;
+		newOrigin.y += (m_WidgetSize.y - canvasRectSize.y * newScale) * 0.5f;
+	}
+	else
+	{
+		// height span across view
+		newScale = m_WidgetSize.y / canvasRectSize.y;
+		newOrigin = canvasRect.Min * -newScale;
+		newOrigin.x += (m_WidgetSize.x - canvasRectSize.x * newScale) * 0.5f;
+	}
 
-    return CanvasView{ newOrigin, newScale };
+	return CanvasView{ newOrigin, newScale };
 }
 
 void ImGuiEx::Canvas::Suspend()
 {
-    // If you're here, please make sure you do not interleave
-    // channel splitter with canvas.
-    // Always call canvas function with using same channel.
-    IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
+	// If you're here, please make sure you do not interleave
+	// channel splitter with canvas.
+	// Always call canvas function with using same channel.
+	IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
 
-    if (m_SuspendCounter == 0)
-        LeaveLocalSpace();
+	if (m_SuspendCounter == 0)
+		LeaveLocalSpace();
 
-    ++m_SuspendCounter;
+	++m_SuspendCounter;
 }
 
 void ImGuiEx::Canvas::Resume()
 {
-    // If you're here, please make sure you do not interleave
-    // channel splitter with canvas.
-    // Always call canvas function with using same channel.
-    IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
+	// If you're here, please make sure you do not interleave
+	// channel splitter with canvas.
+	// Always call canvas function with using same channel.
+	IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
 
-    // Check: Number of calls to Resume() do not match calls to Suspend(). Please check your code.
-    IM_ASSERT(m_SuspendCounter > 0);
-    if (--m_SuspendCounter == 0)
-        EnterLocalSpace();
+	// Check: Number of calls to Resume() do not match calls to Suspend(). Please check your code.
+	IM_ASSERT(m_SuspendCounter > 0);
+	if (--m_SuspendCounter == 0)
+		EnterLocalSpace();
 }
 
 ImVec2 ImGuiEx::Canvas::FromLocal(const ImVec2& point) const
 {
-    return point * m_View.Scale + m_ViewTransformPosition;
+	return point * m_View.Scale + m_ViewTransformPosition;
 }
 
 ImVec2 ImGuiEx::Canvas::FromLocal(const ImVec2& point, const CanvasView& view) const
 {
-    return point * view.Scale + view.Origin + m_WidgetPosition;
+	return point * view.Scale + view.Origin + m_WidgetPosition;
 }
 
 ImVec2 ImGuiEx::Canvas::FromLocalV(const ImVec2& vector) const
 {
-    return vector * m_View.Scale;
+	return vector * m_View.Scale;
 }
 
 ImVec2 ImGuiEx::Canvas::FromLocalV(const ImVec2& vector, const CanvasView& view) const
 {
-    return vector * view.Scale;
+	return vector * view.Scale;
 }
 
 ImVec2 ImGuiEx::Canvas::ToLocal(const ImVec2& point) const
 {
-    return (point - m_ViewTransformPosition) * m_View.InvScale;
+	return (point - m_ViewTransformPosition) * m_View.InvScale;
 }
 
 ImVec2 ImGuiEx::Canvas::ToLocal(const ImVec2& point, const CanvasView& view) const
 {
-    return (point - view.Origin - m_WidgetPosition) * view.InvScale;
+	return (point - view.Origin - m_WidgetPosition) * view.InvScale;
 }
 
 ImVec2 ImGuiEx::Canvas::ToLocalV(const ImVec2& vector) const
 {
-    return vector * m_View.InvScale;
+	return vector * m_View.InvScale;
 }
 
 ImVec2 ImGuiEx::Canvas::ToLocalV(const ImVec2& vector, const CanvasView& view) const
 {
-    return vector * view.InvScale;
+	return vector * view.InvScale;
 }
 
 ImRect ImGuiEx::Canvas::CalcViewRect(const CanvasView& view) const
 {
-    ImRect result;
-    result.Min = ImVec2(-view.Origin.x, -view.Origin.y) * view.InvScale;
-    result.Max = (m_WidgetSize - view.Origin) * view.InvScale;
-    return result;
+	ImRect result;
+	result.Min = ImVec2(-view.Origin.x, -view.Origin.y) * view.InvScale;
+	result.Max = (m_WidgetSize - view.Origin) * view.InvScale;
+	return result;
 }
 
 void ImGuiEx::Canvas::UpdateViewTransformPosition()
 {
-    m_ViewTransformPosition = m_View.Origin + m_WidgetPosition;
+	m_ViewTransformPosition = m_View.Origin + m_WidgetPosition;
 }
 
 void ImGuiEx::Canvas::SaveInputState()
 {
-    auto& io = ImGui::GetIO();
-    m_MousePosBackup = io.MousePos;
-    m_MousePosPrevBackup = io.MousePosPrev;
-    for (auto i = 0; i < IM_ARRAYSIZE(m_MouseClickedPosBackup); ++i)
-        m_MouseClickedPosBackup[i] = io.MouseClickedPos[i];
+	auto& io = ImGui::GetIO();
+	m_MousePosBackup = io.MousePos;
+	m_MousePosPrevBackup = io.MousePosPrev;
+	for (auto i = 0; i < IM_ARRAYSIZE(m_MouseClickedPosBackup); ++i)
+		m_MouseClickedPosBackup[i] = io.MouseClickedPos[i];
 }
 
 void ImGuiEx::Canvas::RestoreInputState()
 {
-    auto& io = ImGui::GetIO();
-    io.MousePos = m_MousePosBackup;
-    io.MousePosPrev = m_MousePosPrevBackup;
-    for (auto i = 0; i < IM_ARRAYSIZE(m_MouseClickedPosBackup); ++i)
-        io.MouseClickedPos[i] = m_MouseClickedPosBackup[i];
+	auto& io = ImGui::GetIO();
+	io.MousePos = m_MousePosBackup;
+	io.MousePosPrev = m_MousePosPrevBackup;
+	for (auto i = 0; i < IM_ARRAYSIZE(m_MouseClickedPosBackup); ++i)
+		io.MouseClickedPos[i] = m_MouseClickedPosBackup[i];
 }
 
 void ImGuiEx::Canvas::SaveViewportState()
 {
 # if defined(IMGUI_HAS_VIEWPORT)
-    auto window = ImGui::GetCurrentWindow();
-    auto viewport = ImGui::GetWindowViewport();
+	auto window = ImGui::GetCurrentWindow();
+	auto viewport = ImGui::GetWindowViewport();
 
-    m_WindowPosBackup = window->Pos;
-    m_ViewportPosBackup = viewport->Pos;
-    m_ViewportSizeBackup = viewport->Size;
+	m_WindowPosBackup = window->Pos;
+	m_ViewportPosBackup = viewport->Pos;
+	m_ViewportSizeBackup = viewport->Size;
 # if IMGUI_VERSION_NUM > 18002
-    m_ViewportWorkPosBackup = viewport->WorkPos;
-    m_ViewportWorkSizeBackup = viewport->WorkSize;
+	m_ViewportWorkPosBackup = viewport->WorkPos;
+	m_ViewportWorkSizeBackup = viewport->WorkSize;
 # else
-    m_ViewportWorkOffsetMinBackup = viewport->WorkOffsetMin;
-    m_ViewportWorkOffsetMaxBackup = viewport->WorkOffsetMax;
+	m_ViewportWorkOffsetMinBackup = viewport->WorkOffsetMin;
+	m_ViewportWorkOffsetMaxBackup = viewport->WorkOffsetMax;
 # endif
 # endif
 }
@@ -377,176 +378,176 @@ void ImGuiEx::Canvas::SaveViewportState()
 void ImGuiEx::Canvas::RestoreViewportState()
 {
 # if defined(IMGUI_HAS_VIEWPORT)
-    auto window = ImGui::GetCurrentWindow();
-    auto viewport = ImGui::GetWindowViewport();
+	auto window = ImGui::GetCurrentWindow();
+	auto viewport = ImGui::GetWindowViewport();
 
-    window->Pos = m_WindowPosBackup;
-    viewport->Pos = m_ViewportPosBackup;
-    viewport->Size = m_ViewportSizeBackup;
+	window->Pos = m_WindowPosBackup;
+	viewport->Pos = m_ViewportPosBackup;
+	viewport->Size = m_ViewportSizeBackup;
 # if IMGUI_VERSION_NUM > 18002
-    viewport->WorkPos = m_ViewportWorkPosBackup;
-    viewport->WorkSize = m_ViewportWorkSizeBackup;
+	viewport->WorkPos = m_ViewportWorkPosBackup;
+	viewport->WorkSize = m_ViewportWorkSizeBackup;
 # else
-    viewport->WorkOffsetMin = m_ViewportWorkOffsetMinBackup;
-    viewport->WorkOffsetMax = m_ViewportWorkOffsetMaxBackup;
+	viewport->WorkOffsetMin = m_ViewportWorkOffsetMinBackup;
+	viewport->WorkOffsetMax = m_ViewportWorkOffsetMaxBackup;
 # endif
 # endif
 }
 
 void ImGuiEx::Canvas::EnterLocalSpace()
 {
-    // Prepare ImDrawList for drawing in local coordinate system:
-    //   - determine visible part of the canvas
-    //   - start unique draw command
-    //   - add clip rect matching canvas size
-    //   - record current command index
-    //   - record current vertex write index
+	// Prepare ImDrawList for drawing in local coordinate system:
+	//   - determine visible part of the canvas
+	//   - start unique draw command
+	//   - add clip rect matching canvas size
+	//   - record current command index
+	//   - record current vertex write index
 
-    // Determine visible part of the canvas. Make it before
-    // adding new command, to avoid round rip where command
-    // is removed in PopClipRect() and added again next PushClipRect().
-    ImGui::PushClipRect(m_WidgetPosition, m_WidgetPosition + m_WidgetSize, true);
-    auto clipped_clip_rect = m_DrawList->_ClipRectStack.back();
-    ImGui::PopClipRect();
+	// Determine visible part of the canvas. Make it before
+	// adding new command, to avoid round rip where command
+	// is removed in PopClipRect() and added again next PushClipRect().
+	ImGui::PushClipRect(m_WidgetPosition, m_WidgetPosition + m_WidgetSize, true);
+	auto clipped_clip_rect = m_DrawList->_ClipRectStack.back();
+	ImGui::PopClipRect();
 
-    // Make sure we do not share draw command with anyone. We don't want to mess
-    // with someones clip rectangle.
+	// Make sure we do not share draw command with anyone. We don't want to mess
+	// with someones clip rectangle.
 
-    // #FIXME:
-    //     This condition is not enough to avoid when user choose
-    //     to use channel splitter.
-    //
-    //     To deal with Suspend()/Resume() calls empty draw command
-    //     is always added then splitter is active. Otherwise
-    //     channel merger will collapse our draw command one with
-    //     different clip rectangle.
-    //
-    //     More investigation is needed. To get to the bottom of this.
-    if ((!m_DrawList->CmdBuffer.empty() && m_DrawList->CmdBuffer.back().ElemCount > 0) || m_DrawList->_Splitter._Count > 1)
-        m_DrawList->AddDrawCmd();
+	// #FIXME:
+	//     This condition is not enough to avoid when user choose
+	//     to use channel splitter.
+	//
+	//     To deal with Suspend()/Resume() calls empty draw command
+	//     is always added then splitter is active. Otherwise
+	//     channel merger will collapse our draw command one with
+	//     different clip rectangle.
+	//
+	//     More investigation is needed. To get to the bottom of this.
+	if ((!m_DrawList->CmdBuffer.empty() && m_DrawList->CmdBuffer.back().ElemCount > 0) || m_DrawList->_Splitter._Count > 1)
+		m_DrawList->AddDrawCmd();
 
 # if IMGUI_EX_CANVAS_DEFERED()
-    m_Ranges.resize(m_Ranges.Size + 1);
-    m_CurrentRange = &m_Ranges.back();
-    m_CurrentRange->BeginComandIndex = ImMax(m_DrawList->CmdBuffer.Size - 1, 0);
-    m_CurrentRange->BeginVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+	m_Ranges.resize(m_Ranges.Size + 1);
+	m_CurrentRange = &m_Ranges.back();
+	m_CurrentRange->BeginComandIndex = ImMax(m_DrawList->CmdBuffer.Size - 1, 0);
+	m_CurrentRange->BeginVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
 # endif
-    m_DrawListCommadBufferSize       = ImMax(m_DrawList->CmdBuffer.Size - 1, 0);
-    m_DrawListStartVertexIndex       = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+	m_DrawListCommadBufferSize = ImMax(m_DrawList->CmdBuffer.Size - 1, 0);
+	m_DrawListStartVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
 
 # if defined(IMGUI_HAS_VIEWPORT)
-    auto window = ImGui::GetCurrentWindow();
-    window->Pos = ImVec2(0.0f, 0.0f);
+	auto window = ImGui::GetCurrentWindow();
+	window->Pos = ImVec2(0.0f, 0.0f);
 
-    auto viewport_min = m_ViewportPosBackup;
-    auto viewport_max = m_ViewportPosBackup + m_ViewportSizeBackup;
+	auto viewport_min = m_ViewportPosBackup;
+	auto viewport_max = m_ViewportPosBackup + m_ViewportSizeBackup;
 
-    viewport_min.x = (viewport_min.x - m_ViewTransformPosition.x) * m_View.InvScale;
-    viewport_min.y = (viewport_min.y - m_ViewTransformPosition.y) * m_View.InvScale;
-    viewport_max.x = (viewport_max.x - m_ViewTransformPosition.x) * m_View.InvScale;
-    viewport_max.y = (viewport_max.y - m_ViewTransformPosition.y) * m_View.InvScale;
+	viewport_min.x = (viewport_min.x - m_ViewTransformPosition.x) * m_View.InvScale;
+	viewport_min.y = (viewport_min.y - m_ViewTransformPosition.y) * m_View.InvScale;
+	viewport_max.x = (viewport_max.x - m_ViewTransformPosition.x) * m_View.InvScale;
+	viewport_max.y = (viewport_max.y - m_ViewTransformPosition.y) * m_View.InvScale;
 
-    auto viewport = ImGui::GetWindowViewport();
-    viewport->Pos  = viewport_min;
-    viewport->Size = viewport_max - viewport_min;
+	auto viewport = ImGui::GetWindowViewport();
+	viewport->Pos = viewport_min;
+	viewport->Size = viewport_max - viewport_min;
 
 # if IMGUI_VERSION_NUM > 18002
-    viewport->WorkPos  = m_ViewportWorkPosBackup  * m_View.InvScale;
-    viewport->WorkSize = m_ViewportWorkSizeBackup * m_View.InvScale;
+	viewport->WorkPos = m_ViewportWorkPosBackup * m_View.InvScale;
+	viewport->WorkSize = m_ViewportWorkSizeBackup * m_View.InvScale;
 # else
-    viewport->WorkOffsetMin = m_ViewportWorkOffsetMinBackup * m_View.InvScale;
-    viewport->WorkOffsetMax = m_ViewportWorkOffsetMaxBackup * m_View.InvScale;
+	viewport->WorkOffsetMin = m_ViewportWorkOffsetMinBackup * m_View.InvScale;
+	viewport->WorkOffsetMax = m_ViewportWorkOffsetMaxBackup * m_View.InvScale;
 # endif
 # endif
 
-    // Clip rectangle in parent canvas space and move it to local space.
-    clipped_clip_rect.x = (clipped_clip_rect.x - m_ViewTransformPosition.x) * m_View.InvScale;
-    clipped_clip_rect.y = (clipped_clip_rect.y - m_ViewTransformPosition.y) * m_View.InvScale;
-    clipped_clip_rect.z = (clipped_clip_rect.z - m_ViewTransformPosition.x) * m_View.InvScale;
-    clipped_clip_rect.w = (clipped_clip_rect.w - m_ViewTransformPosition.y) * m_View.InvScale;
-    ImGui::PushClipRect(ImVec2(clipped_clip_rect.x, clipped_clip_rect.y), ImVec2(clipped_clip_rect.z, clipped_clip_rect.w), false);
+	// Clip rectangle in parent canvas space and move it to local space.
+	clipped_clip_rect.x = (clipped_clip_rect.x - m_ViewTransformPosition.x) * m_View.InvScale;
+	clipped_clip_rect.y = (clipped_clip_rect.y - m_ViewTransformPosition.y) * m_View.InvScale;
+	clipped_clip_rect.z = (clipped_clip_rect.z - m_ViewTransformPosition.x) * m_View.InvScale;
+	clipped_clip_rect.w = (clipped_clip_rect.w - m_ViewTransformPosition.y) * m_View.InvScale;
+	ImGui::PushClipRect(ImVec2(clipped_clip_rect.x, clipped_clip_rect.y), ImVec2(clipped_clip_rect.z, clipped_clip_rect.w), false);
 
-    // Transform mouse position to local space.
-    auto& io = ImGui::GetIO();
-    io.MousePos     = (m_MousePosBackup - m_ViewTransformPosition) * m_View.InvScale;
-    io.MousePosPrev = (m_MousePosPrevBackup - m_ViewTransformPosition) * m_View.InvScale;
-    for (auto i = 0; i < IM_ARRAYSIZE(m_MouseClickedPosBackup); ++i)
-        io.MouseClickedPos[i] = (m_MouseClickedPosBackup[i] - m_ViewTransformPosition) * m_View.InvScale;
+	// Transform mouse position to local space.
+	auto& io = ImGui::GetIO();
+	io.MousePos = (m_MousePosBackup - m_ViewTransformPosition) * m_View.InvScale;
+	io.MousePosPrev = (m_MousePosPrevBackup - m_ViewTransformPosition) * m_View.InvScale;
+	for (auto i = 0; i < IM_ARRAYSIZE(m_MouseClickedPosBackup); ++i)
+		io.MouseClickedPos[i] = (m_MouseClickedPosBackup[i] - m_ViewTransformPosition) * m_View.InvScale;
 
-    m_ViewRect = CalcViewRect(m_View);;
+	m_ViewRect = CalcViewRect(m_View);;
 
-    auto& fringeScale = ImFringeScaleRef(m_DrawList);
-    m_LastFringeScale = fringeScale;
-    fringeScale *= m_View.InvScale;
+	auto& fringeScale = ImFringeScaleRef(m_DrawList);
+	m_LastFringeScale = fringeScale;
+	fringeScale *= m_View.InvScale;
 }
 
 void ImGuiEx::Canvas::LeaveLocalSpace()
 {
-    IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
+	IM_ASSERT(m_DrawList->_Splitter._Current == m_ExpectedChannel);
 
 # if IMGUI_EX_CANVAS_DEFERED()
-    IM_ASSERT(m_CurrentRange != nullptr);
+	IM_ASSERT(m_CurrentRange != nullptr);
 
-    m_CurrentRange->EndVertexIndex  = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
-    m_CurrentRange->EndCommandIndex = m_DrawList->CmdBuffer.size();
-    if (m_CurrentRange->BeginVertexIndex == m_CurrentRange->EndVertexIndex)
-    {
-        // Drop empty range
-        m_Ranges.resize(m_Ranges.Size - 1);
-    }
-    m_CurrentRange = nullptr;
+	m_CurrentRange->EndVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+	m_CurrentRange->EndCommandIndex = m_DrawList->CmdBuffer.size();
+	if (m_CurrentRange->BeginVertexIndex == m_CurrentRange->EndVertexIndex)
+	{
+		// Drop empty range
+		m_Ranges.resize(m_Ranges.Size - 1);
+	}
+	m_CurrentRange = nullptr;
 # endif
 
-    // Move vertices to screen space.
-    auto vertex    = m_DrawList->VtxBuffer.Data + m_DrawListStartVertexIndex;
-    auto vertexEnd = m_DrawList->VtxBuffer.Data + m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+	// Move vertices to screen space.
+	auto vertex = m_DrawList->VtxBuffer.Data + m_DrawListStartVertexIndex;
+	auto vertexEnd = m_DrawList->VtxBuffer.Data + m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
 
-    // If canvas view is not scaled take a faster path.
-    if (m_View.Scale != 1.0f)
-    {
-        while (vertex < vertexEnd)
-        {
-            vertex->pos.x = vertex->pos.x * m_View.Scale + m_ViewTransformPosition.x;
-            vertex->pos.y = vertex->pos.y * m_View.Scale + m_ViewTransformPosition.y;
-            ++vertex;
-        }
+	// If canvas view is not scaled take a faster path.
+	if (m_View.Scale != 1.0f)
+	{
+		while (vertex < vertexEnd)
+		{
+			vertex->pos.x = vertex->pos.x * m_View.Scale + m_ViewTransformPosition.x;
+			vertex->pos.y = vertex->pos.y * m_View.Scale + m_ViewTransformPosition.y;
+			++vertex;
+		}
 
-        // Move clip rectangles to screen space.
-        for (int i = m_DrawListCommadBufferSize; i < m_DrawList->CmdBuffer.size(); ++i)
-        {
-            auto& command = m_DrawList->CmdBuffer[i];
-            command.ClipRect.x = command.ClipRect.x * m_View.Scale + m_ViewTransformPosition.x;
-            command.ClipRect.y = command.ClipRect.y * m_View.Scale + m_ViewTransformPosition.y;
-            command.ClipRect.z = command.ClipRect.z * m_View.Scale + m_ViewTransformPosition.x;
-            command.ClipRect.w = command.ClipRect.w * m_View.Scale + m_ViewTransformPosition.y;
-        }
-    }
-    else
-    {
-        while (vertex < vertexEnd)
-        {
-            vertex->pos.x = vertex->pos.x + m_ViewTransformPosition.x;
-            vertex->pos.y = vertex->pos.y + m_ViewTransformPosition.y;
-            ++vertex;
-        }
+		// Move clip rectangles to screen space.
+		for (int i = m_DrawListCommadBufferSize; i < m_DrawList->CmdBuffer.size(); ++i)
+		{
+			auto& command = m_DrawList->CmdBuffer[i];
+			command.ClipRect.x = command.ClipRect.x * m_View.Scale + m_ViewTransformPosition.x;
+			command.ClipRect.y = command.ClipRect.y * m_View.Scale + m_ViewTransformPosition.y;
+			command.ClipRect.z = command.ClipRect.z * m_View.Scale + m_ViewTransformPosition.x;
+			command.ClipRect.w = command.ClipRect.w * m_View.Scale + m_ViewTransformPosition.y;
+		}
+	}
+	else
+	{
+		while (vertex < vertexEnd)
+		{
+			vertex->pos.x = vertex->pos.x + m_ViewTransformPosition.x;
+			vertex->pos.y = vertex->pos.y + m_ViewTransformPosition.y;
+			++vertex;
+		}
 
-        // Move clip rectangles to screen space.
-        for (int i = m_DrawListCommadBufferSize; i < m_DrawList->CmdBuffer.size(); ++i)
-        {
-            auto& command = m_DrawList->CmdBuffer[i];
-            command.ClipRect.x = command.ClipRect.x + m_ViewTransformPosition.x;
-            command.ClipRect.y = command.ClipRect.y + m_ViewTransformPosition.y;
-            command.ClipRect.z = command.ClipRect.z + m_ViewTransformPosition.x;
-            command.ClipRect.w = command.ClipRect.w + m_ViewTransformPosition.y;
-        }
-    }
+		// Move clip rectangles to screen space.
+		for (int i = m_DrawListCommadBufferSize; i < m_DrawList->CmdBuffer.size(); ++i)
+		{
+			auto& command = m_DrawList->CmdBuffer[i];
+			command.ClipRect.x = command.ClipRect.x + m_ViewTransformPosition.x;
+			command.ClipRect.y = command.ClipRect.y + m_ViewTransformPosition.y;
+			command.ClipRect.z = command.ClipRect.z + m_ViewTransformPosition.x;
+			command.ClipRect.w = command.ClipRect.w + m_ViewTransformPosition.y;
+		}
+	}
 
-    auto& fringeScale = ImFringeScaleRef(m_DrawList);
-    fringeScale = m_LastFringeScale;
+	auto& fringeScale = ImFringeScaleRef(m_DrawList);
+	fringeScale = m_LastFringeScale;
 
-    // And pop \o/
-    ImGui::PopClipRect();
+	// And pop \o/
+	ImGui::PopClipRect();
 
-    RestoreInputState();
-    RestoreViewportState();
+	RestoreInputState();
+	RestoreViewportState();
 }

@@ -15,9 +15,6 @@
 
 
 //------------------------------------------------------------------------------
-# ifndef IMGUI_DEFINE_MATH_OPERATORS
-#     define IMGUI_DEFINE_MATH_OPERATORS
-# endif
 # include <imgui.h>
 # include <imgui_internal.h>
 
@@ -25,7 +22,7 @@
 //------------------------------------------------------------------------------
 struct ImLine
 {
-    ImVec2 A, B;
+	ImVec2 A, B;
 };
 
 
@@ -54,13 +51,14 @@ inline ImLine ImRect_ClosestLine(const ImRect& rect_a, const ImRect& rect_b, flo
 
 
 //------------------------------------------------------------------------------
-namespace ImEasing {
-
-template <typename V, typename T>
-inline V EaseOutQuad(V b, V c, T t)
+namespace ImEasing
 {
-    return b - c * (t * (t - 2));
-}
+
+	template <typename V, typename T>
+	inline V EaseOutQuad(V b, V c, T t)
+	{
+		return b - c * (t * (t - 2));
+	}
 
 } // namespace ImEasing
 

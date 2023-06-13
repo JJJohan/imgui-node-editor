@@ -19,45 +19,48 @@
 
 
 //------------------------------------------------------------------------------
-namespace ax {
-namespace NodeEditor {
-namespace Detail {
-
-
-//------------------------------------------------------------------------------
-//inline ImRect ToRect(const ax::rectf& rect)
-//{
-//    return ImRect(
-//        to_imvec(rect.top_left()),
-//        to_imvec(rect.bottom_right())
-//    );
-//}
-//
-//inline ImRect ToRect(const ax::rect& rect)
-//{
-//    return ImRect(
-//        to_imvec(rect.top_left()),
-//        to_imvec(rect.bottom_right())
-//    );
-//}
-
-inline ImRect ImGui_GetItemRect()
+namespace ax
 {
-    return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-}
-
-inline ImVec2 ImGui_GetMouseClickPos(ImGuiMouseButton buttonIndex)
-{
-    if (ImGui::IsMouseDown(buttonIndex))
-        return ImGui::GetIO().MouseClickedPos[buttonIndex];
-    else
-        return ImGui::GetMousePos();
-}
+	namespace NodeEditor
+	{
+		namespace Detail
+		{
 
 
-//------------------------------------------------------------------------------
-} // namespace Detail
-} // namespace Editor
+			//------------------------------------------------------------------------------
+			//inline ImRect ToRect(const ax::rectf& rect)
+			//{
+			//    return ImRect(
+			//        to_imvec(rect.top_left()),
+			//        to_imvec(rect.bottom_right())
+			//    );
+			//}
+			//
+			//inline ImRect ToRect(const ax::rect& rect)
+			//{
+			//    return ImRect(
+			//        to_imvec(rect.top_left()),
+			//        to_imvec(rect.bottom_right())
+			//    );
+			//}
+
+			inline ImRect ImGui_GetItemRect()
+			{
+				return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+			}
+
+			inline ImVec2 ImGui_GetMouseClickPos(ImGuiMouseButton buttonIndex)
+			{
+				if (ImGui::IsMouseDown(buttonIndex))
+					return ImGui::GetIO().MouseClickedPos[buttonIndex];
+				else
+					return ImGui::GetMousePos();
+			}
+
+
+			//------------------------------------------------------------------------------
+		} // namespace Detail
+	} // namespace Editor
 } // namespace ax
 
 
