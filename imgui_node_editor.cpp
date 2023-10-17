@@ -1138,11 +1138,11 @@ void ed::EditorContext::Begin(const char* id, const ImVec2& size)
 	if (canvasSize.y <= 0.0f)
 		canvasSize.y = ImMax(4.0f, availableContentSize.y);
 
-	if (!m_IsInitialized)
-	{
-		// Cycle canvas so it has a change to setup its size before settings are loaded
-		m_Canvas.Begin(id, canvasSize);
-		m_Canvas.End();
+    if (!m_IsInitialized)
+    {
+        // Cycle canvas, so it has a chance to initialize its size before settings are loaded
+        if (m_Canvas.Begin(id, canvasSize))
+            m_Canvas.End();
 
 		LoadSettings();
 		m_IsInitialized = true;
@@ -1954,24 +1954,26 @@ void ed::EditorContext::NotifyLinkDeleted(Link* link)
 
 void ed::EditorContext::Suspend(SuspendFlags flags)
 {
-	IM_ASSERT(m_DrawList != nullptr && "Suspend was called outiside of Begin/End.");
-	auto lastChannel = m_DrawList->_Splitter._Current;
-	m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
-	m_Canvas.Suspend();
-	m_DrawList->ChannelsSetCurrent(lastChannel);
-	if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
-		ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
+    IM_ASSERT(m_DrawList != nullptr && "Suspend was called outiside of Begin/End.");
+    auto lastChannel = m_DrawList->_Splitter._Current;
+    m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
+    if (m_IsCanvasVisible)
+        m_Canvas.Suspend();
+    m_DrawList->ChannelsSetCurrent(lastChannel);
+    if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
+        ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
 }
 
 void ed::EditorContext::Resume(SuspendFlags flags)
 {
-	IM_ASSERT(m_DrawList != nullptr && "Reasume was called outiside of Begin/End.");
-	if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
-		ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
-	auto lastChannel = m_DrawList->_Splitter._Current;
-	m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
-	m_Canvas.Resume();
-	m_DrawList->ChannelsSetCurrent(lastChannel);
+    IM_ASSERT(m_DrawList != nullptr && "Reasume was called outiside of Begin/End.");
+    if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
+        ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
+    auto lastChannel = m_DrawList->_Splitter._Current;
+    m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
+    if (m_IsCanvasVisible)
+        m_Canvas.Resume();
+    m_DrawList->ChannelsSetCurrent(lastChannel);
 }
 
 bool ed::EditorContext::IsSuspended()
@@ -4467,23 +4469,23 @@ bool ed::CreateItemAction::Begin()
 {
 	IM_ASSERT(false == m_InActive);
 
-	m_InActive = true;
-	m_CurrentStage = m_NextStage;
-	m_UserAction = Unknown;
-	m_LinkColor = IM_COL32_WHITE;
-	m_LinkThickness = 1.0f;
+    if (m_NextStage == None)
+        return false;
 
-	if (m_CurrentStage == None)
-		return false;
+    m_InActive        = true;
+    m_CurrentStage    = m_NextStage;
+    m_UserAction      = Unknown;
+    m_LinkColor       = IM_COL32_WHITE;
+    m_LinkThickness   = 1.0f;
 
-	m_LastChannel = Editor->GetDrawList()->_Splitter._Current;
+    m_LastChannel = Editor->GetDrawList()->_Splitter._Current;
 
 	return true;
 }
 
 void ed::CreateItemAction::End()
 {
-	IM_ASSERT(m_InActive);
+    IM_ASSERT(m_InActive && "Please call End() only when Begin() was successful");
 
 	if (m_IsInGlobalSpace)
 	{

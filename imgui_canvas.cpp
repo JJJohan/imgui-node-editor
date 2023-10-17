@@ -27,9 +27,13 @@
         static constexpr bool value = (sizeof(yes_type) == sizeof(test<mixin>(0)));  \
     }
 
+// Special sentinel value. This needs to be unique, so allow it to be overridden in the user's ImGui config
+# ifndef ImDrawCallback_ImCanvas
+#     define ImDrawCallback_ImCanvas        (ImDrawCallback)(-2)
+# endif
+
 namespace ImCanvasDetails
 {
-
 	DECLARE_HAS_MEMBER(HasFringeScale, _FringeScale);
 
 	struct FringeScaleRef
@@ -134,9 +138,11 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
 
 	EnterLocalSpace();
 
-	// Emit dummy widget matching bounds of the canvas.
-	ImGui::SetCursorScreenPos(m_ViewRect.Min);
-	ImGui::Dummy(m_ViewRect.GetSize());
+    ImGui::SetNextItemAllowOverlap();
+
+    // Emit dummy widget matching bounds of the canvas.
+    ImGui::SetCursorScreenPos(m_ViewRect.Min);
+    ImGui::Dummy(m_ViewRect.GetSize());
 
 	ImGui::SetCursorScreenPos(ImVec2(0.0f, 0.0f));
 
@@ -410,30 +416,30 @@ void ImGuiEx::Canvas::EnterLocalSpace()
 	auto clipped_clip_rect = m_DrawList->_ClipRectStack.back();
 	ImGui::PopClipRect();
 
-	// Make sure we do not share draw command with anyone. We don't want to mess
-	// with someones clip rectangle.
-
-	// #FIXME:
-	//     This condition is not enough to avoid when user choose
-	//     to use channel splitter.
-	//
-	//     To deal with Suspend()/Resume() calls empty draw command
-	//     is always added then splitter is active. Otherwise
-	//     channel merger will collapse our draw command one with
-	//     different clip rectangle.
-	//
-	//     More investigation is needed. To get to the bottom of this.
-	if ((!m_DrawList->CmdBuffer.empty() && m_DrawList->CmdBuffer.back().ElemCount > 0) || m_DrawList->_Splitter._Count > 1)
-		m_DrawList->AddDrawCmd();
-
 # if IMGUI_EX_CANVAS_DEFERED()
-	m_Ranges.resize(m_Ranges.Size + 1);
-	m_CurrentRange = &m_Ranges.back();
-	m_CurrentRange->BeginComandIndex = ImMax(m_DrawList->CmdBuffer.Size - 1, 0);
-	m_CurrentRange->BeginVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+    m_Ranges.resize(m_Ranges.Size + 1);
+    m_CurrentRange = &m_Ranges.back();
+    m_CurrentRange->BeginComandIndex = ImMax(m_DrawList->CmdBuffer.Size, 0);
+    m_CurrentRange->BeginVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
 # endif
-	m_DrawListCommadBufferSize = ImMax(m_DrawList->CmdBuffer.Size - 1, 0);
-	m_DrawListStartVertexIndex = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+    m_DrawListCommadBufferSize       = ImMax(m_DrawList->CmdBuffer.Size, 0);
+    m_DrawListStartVertexIndex       = m_DrawList->_VtxCurrentIdx + ImVtxOffsetRef(m_DrawList);
+
+    // Make sure we do not share draw command with anyone. We don't want to mess
+    // with someones clip rectangle.
+
+    // #FIXME:
+    //     This condition is not enough to avoid when user choose
+    //     to use channel splitter.
+    //
+    //     To deal with Suspend()/Resume() calls empty draw command
+    //     is always added then splitter is active. Otherwise
+    //     channel merger will collapse our draw command one with
+    //     different clip rectangle.
+    //
+    //     More investigation is needed. To get to the bottom of this.
+    if ((!m_DrawList->CmdBuffer.empty() && m_DrawList->CmdBuffer.back().ElemCount > 0) || m_DrawList->_Splitter._Count > 1)
+        m_DrawList->AddCallback(ImDrawCallback_ImCanvas, nullptr);
 
 # if defined(IMGUI_HAS_VIEWPORT)
 	auto window = ImGui::GetCurrentWindow();
@@ -542,8 +548,17 @@ void ImGuiEx::Canvas::LeaveLocalSpace()
 		}
 	}
 
-	auto& fringeScale = ImFringeScaleRef(m_DrawList);
-	fringeScale = m_LastFringeScale;
+    // Remove sentinel draw command if present
+    if (m_DrawListCommadBufferSize > 0)
+    {
+        if (m_DrawList->CmdBuffer.size() > m_DrawListCommadBufferSize && m_DrawList->CmdBuffer[m_DrawListCommadBufferSize].UserCallback == ImDrawCallback_ImCanvas)
+            m_DrawList->CmdBuffer.erase(m_DrawList->CmdBuffer.Data + m_DrawListCommadBufferSize);
+        else if (m_DrawList->CmdBuffer.size() >= m_DrawListCommadBufferSize && m_DrawList->CmdBuffer[m_DrawListCommadBufferSize - 1].UserCallback == ImDrawCallback_ImCanvas)
+            m_DrawList->CmdBuffer.erase(m_DrawList->CmdBuffer.Data + m_DrawListCommadBufferSize - 1);
+    }
+
+    auto& fringeScale = ImFringeScaleRef(m_DrawList);
+    fringeScale = m_LastFringeScale;
 
 	// And pop \o/
 	ImGui::PopClipRect();
