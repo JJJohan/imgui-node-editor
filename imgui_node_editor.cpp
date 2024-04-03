@@ -1138,11 +1138,11 @@ void ed::EditorContext::Begin(const char* id, const ImVec2& size)
 	if (canvasSize.y <= 0.0f)
 		canvasSize.y = ImMax(4.0f, availableContentSize.y);
 
-    if (!m_IsInitialized)
-    {
-        // Cycle canvas, so it has a chance to initialize its size before settings are loaded
-        if (m_Canvas.Begin(id, canvasSize))
-            m_Canvas.End();
+	if (!m_IsInitialized)
+	{
+		// Cycle canvas, so it has a chance to initialize its size before settings are loaded
+		if (m_Canvas.Begin(id, canvasSize))
+			m_Canvas.End();
 
 		LoadSettings();
 		m_IsInitialized = true;
@@ -1608,7 +1608,7 @@ void ed::EditorContext::End()
 
 	m_DrawList = nullptr;
 	m_IsFirstFrame = false;
-	}
+}
 
 bool ed::EditorContext::DoLink(LinkId id, PinId startPinId, PinId endPinId, ImU32 color, float thickness)
 {
@@ -1954,26 +1954,26 @@ void ed::EditorContext::NotifyLinkDeleted(Link* link)
 
 void ed::EditorContext::Suspend(SuspendFlags flags)
 {
-    IM_ASSERT(m_DrawList != nullptr && "Suspend was called outiside of Begin/End.");
-    auto lastChannel = m_DrawList->_Splitter._Current;
-    m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
-    if (m_IsCanvasVisible)
-        m_Canvas.Suspend();
-    m_DrawList->ChannelsSetCurrent(lastChannel);
-    if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
-        ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
+	IM_ASSERT(m_DrawList != nullptr && "Suspend was called outiside of Begin/End.");
+	auto lastChannel = m_DrawList->_Splitter._Current;
+	m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
+	if (m_IsCanvasVisible)
+		m_Canvas.Suspend();
+	m_DrawList->ChannelsSetCurrent(lastChannel);
+	if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
+		ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
 }
 
 void ed::EditorContext::Resume(SuspendFlags flags)
 {
-    IM_ASSERT(m_DrawList != nullptr && "Reasume was called outiside of Begin/End.");
-    if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
-        ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
-    auto lastChannel = m_DrawList->_Splitter._Current;
-    m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
-    if (m_IsCanvasVisible)
-        m_Canvas.Resume();
-    m_DrawList->ChannelsSetCurrent(lastChannel);
+	IM_ASSERT(m_DrawList != nullptr && "Reasume was called outiside of Begin/End.");
+	if ((flags & SuspendFlags::KeepSplitter) != SuspendFlags::KeepSplitter)
+		ImDrawList_SwapSplitter(m_DrawList, m_Splitter);
+	auto lastChannel = m_DrawList->_Splitter._Current;
+	m_DrawList->ChannelsSetCurrent(m_ExternalChannel);
+	if (m_IsCanvasVisible)
+		m_Canvas.Resume();
+	m_DrawList->ChannelsSetCurrent(lastChannel);
 }
 
 bool ed::EditorContext::IsSuspended()
@@ -4124,15 +4124,15 @@ ed::EditorAction::AcceptResult ed::ShortcutAction::Accept(const Control& control
 	Action candidateAction = None;
 
 	auto& io = ImGui::GetIO();
-	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_X)))
+	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_X))
 		candidateAction = Cut;
-	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)))
+	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_C))
 		candidateAction = Copy;
-	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)))
+	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_V))
 		candidateAction = Paste;
 	if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(GetKeyIndexForD()))
 		candidateAction = Duplicate;
-	if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space)))
+	if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_Space))
 		candidateAction = CreateNode;
 
 	if (candidateAction != None)
@@ -4469,23 +4469,23 @@ bool ed::CreateItemAction::Begin()
 {
 	IM_ASSERT(false == m_InActive);
 
-    if (m_NextStage == None)
-        return false;
+	if (m_NextStage == None)
+		return false;
 
-    m_InActive        = true;
-    m_CurrentStage    = m_NextStage;
-    m_UserAction      = Unknown;
-    m_LinkColor       = IM_COL32_WHITE;
-    m_LinkThickness   = 1.0f;
+	m_InActive = true;
+	m_CurrentStage = m_NextStage;
+	m_UserAction = Unknown;
+	m_LinkColor = IM_COL32_WHITE;
+	m_LinkThickness = 1.0f;
 
-    m_LastChannel = Editor->GetDrawList()->_Splitter._Current;
+	m_LastChannel = Editor->GetDrawList()->_Splitter._Current;
 
 	return true;
 }
 
 void ed::CreateItemAction::End()
 {
-    IM_ASSERT(m_InActive && "Please call End() only when Begin() was successful");
+	IM_ASSERT(m_InActive && "Please call End() only when Begin() was successful");
 
 	if (m_IsInGlobalSpace)
 	{
@@ -4686,7 +4686,7 @@ ed::EditorAction::AcceptResult ed::DeleteItemsAction::Accept(const Control& cont
 		return False;
 
 	auto& io = ImGui::GetIO();
-	if (Editor->CanAcceptUserInput() && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && Editor->AreShortcutsEnabled())
+	if (Editor->CanAcceptUserInput() && ImGui::IsKeyPressed(ImGuiKey_Delete) && Editor->AreShortcutsEnabled())
 	{
 		auto& selection = Editor->GetSelectedObjects();
 		if (!selection.empty())
